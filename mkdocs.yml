@@ -1,0 +1,75 @@
+site_name: StorySpark
+site_description: AI-generated writing prompts to spark your life stories
+site_author: Michelle Mei-Ling Sandford
+site_url: https://codess-aus.github.io/StorySpark/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: pink
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: pink
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+repo_url: https://github.com/codess-aus/StorySpark
+repo_name: codess-aus/StorySpark
+
+nav:
+  - Home: index.md
+  - Writing Prompts: prompts.md
+  - Stories:
+    - stories/index.md
+  - About: about.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  - blog:
+      blog_dir: stories
+      post_date_format: medium
+      post_url_format: "{slug}"
+      # Archive and categories disabled to keep the site simple as per requirements
+      archive: false
+      categories: false
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/codess-aus/StorySpark
