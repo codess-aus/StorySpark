@@ -65,6 +65,7 @@ plugins:
       blog_dir: stories
       post_date_format: medium
       post_url_format: "{slug}"
+      # Archive and categories disabled to keep the site simple as per requirements
       archive: false
       categories: false
 
