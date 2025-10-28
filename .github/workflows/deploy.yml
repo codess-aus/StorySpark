@@ -49,12 +49,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
-
-      - name: Upload artifact (fallback github-pages)
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-pages
-          path: site
   deploy:
     environment:
       name: github-pages
