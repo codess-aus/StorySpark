@@ -35,12 +35,26 @@ jobs:
       - name: Build MkDocs site
         run: |
           mkdocs build --strict
+      - name: Debug site directory
+        run: |
+          if [ -d site ]; then
+            echo "'site' directory exists. Sample listing:"
+            ls -1 site | head -n 20
+          else
+            echo "'site' directory missing." >&2
+            ls -al
+          fi
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./site
+          path: site
 
+      - name: Upload artifact (fallback github-pages)
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: site
   deploy:
     environment:
       name: github-pages
