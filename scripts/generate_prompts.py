@@ -14,6 +14,8 @@ Environment Variables (required):
 Optional CLI args:
   --count N           - number of new prompts to generate (default: 5)
   --dry-run           - print prompts and do not modify file
+    --debug             - print raw model output before parsing
+    --mock              - generate synthetic prompts without calling the model (for local testing)
 
 Usage (local):
   export AZURE_AI_ENDPOINT=...
@@ -34,6 +36,13 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import List
+
+# Load local environment variables from .env if present (optional convenience)
+try:  # pragma: no cover
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass  # Safe to ignore if python-dotenv not installed or .env missing
 
 try:
     from azure.ai.inference import ChatCompletionsClient
@@ -153,23 +162,51 @@ def inject_prompts(original: str, new_prompts_md: str) -> str:
     return pattern.sub(replacement_block, original, count=1)
 
 
-def generate(count: int, dry_run: bool = False) -> None:
+def _mock_prompts(count: int) -> List[GeneratedPrompt]:
+    base_examples = [
+        ("A Quiet Turning Point", "Recall a seemingly small moment that later proved pivotal. What shifted afterward?"),
+        ("An Object You Still Keep", "Describe an old object you've kept. Why does it matter and what memory does it hold?"),
+        ("Gratitude in Difficulty", "Write about a time gratitude appeared during a challenging period. What revealed it?"),
+        ("A Voice That Guided You", "Think of someone whose words shaped a choice you made. What did they say?"),
+        ("Hidden Joy", "Describe a joy you didn't expect to find in an ordinary routine. Why did it stand out?"),
+    ]
+    # Rotate / slice to requested count
+    out = []
+    for i in range(count):
+        title, body = base_examples[i % len(base_examples)]
+        # Slight variation to avoid identical duplicates
+        variant = f"{body}"
+        out.append(GeneratedPrompt(title=title, prompt=variant))
+    return out
+
+
+def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool = False) -> None:
     endpoint = os.getenv("AZURE_AI_ENDPOINT")
     key = os.getenv("AZURE_AI_KEY")
     model = os.getenv("AZURE_AI_MODEL")
-    if not all([endpoint, key, model]):
-        missing = [name for name, val in [("AZURE_AI_ENDPOINT", endpoint), ("AZURE_AI_KEY", key), ("AZURE_AI_MODEL", model)] if not val]
-        raise SystemExit(f"Missing required environment variables: {', '.join(missing)}")
+    if mock:
+        # Allow mock run even if env vars absent
+        if debug:
+            print("[DEBUG] Running in --mock mode; no Azure call will be made.")
+    else:
+        if not all([endpoint, key, model]):
+            missing = [name for name, val in [("AZURE_AI_ENDPOINT", endpoint), ("AZURE_AI_KEY", key), ("AZURE_AI_MODEL", model)] if not val]
+            raise SystemExit(f"Missing required environment variables: {', '.join(missing)}")
 
     original_text = load_file(PROMPTS_FILE)
     existing_generated = extract_existing_generated_section(original_text)
-    messages = create_messages(existing_generated, count)
-    raw_output = call_model(endpoint, key, model, messages)
-    try:
-        prompts = parse_json_array(raw_output)
-    except ValueError as e:
-        print(str(e), file=sys.stderr)
-        raise SystemExit(1)
+    if mock:
+        prompts = _mock_prompts(count)
+    else:
+        messages = create_messages(existing_generated, count)
+        raw_output = call_model(endpoint, key, model, messages)
+        if debug:
+            print("[DEBUG] Raw model output:\n" + raw_output)
+        try:
+            prompts = parse_json_array(raw_output)
+        except ValueError as e:
+            print(str(e), file=sys.stderr)
+            raise SystemExit(1)
 
     if not prompts:
         raise SystemExit("No prompts parsed from model output.")
@@ -190,8 +227,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate AI writing prompts and update prompts.md")
     parser.add_argument("--count", type=int, default=5, help="Number of prompts to generate (default: 5)")
     parser.add_argument("--dry-run", action="store_true", help="Print generated prompts without writing file")
+    parser.add_argument("--debug", action="store_true", help="Print raw model output (non-mock) before parsing")
+    parser.add_argument("--mock", action="store_true", help="Use local synthetic prompts (no Azure call)")
     args = parser.parse_args()
-    generate(count=args.count, dry_run=args.dry_run)
+    generate(count=args.count, dry_run=args.dry_run, debug=args.debug, mock=args.mock)
 
 
 if __name__ == "__main__":  # pragma: no cover

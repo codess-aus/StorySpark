@@ -53,6 +53,21 @@ Once you've chosen a prompt and written your response, consider sharing it in ou
     This page will be regularly updated with fresh, AI-generated prompts to keep your storytelling journey vibrant and meaningful.
 
 <!-- AI-GENERATED-PROMPTS:START -->
-<!-- (Generated prompts will be inserted below. Do not remove START/END markers.) -->
+<div class="ai-prompts-block" markdown="1">
+### AI Generated Prompts - Seed
+<span class="ai-prompts-badge">AI</span> These initial prompts are seeded; future runs will append dated sets.
+
+!!! quote "A Quiet Turning Point"
+    Recall a seemingly small moment that later proved pivotal. What shifted afterward?
+!!! quote "An Object You Still Keep"
+    Describe an old object you've kept. Why does it matter and what memory does it hold?
+!!! quote "Gratitude in Difficulty"
+    Write about a time gratitude appeared during a challenging period. What revealed it?
+!!! quote "A Voice That Guided You"
+    Think of someone whose words shaped a choice you made. What did they say?
+!!! quote "Hidden Joy"
+    Describe a joy you didn't expect to find in an ordinary routine. Why did it stand out?
+
+</div>
 <!-- AI-GENERATED-PROMPTS:END -->
 

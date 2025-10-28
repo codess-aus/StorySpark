@@ -73,3 +73,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/codess-aus/StorySpark
+
+extra_css:
+  - styles/ai-prompts.css

@@ -1,0 +1,32 @@
+.ai-prompts-block { 
+  border: 2px solid var(--md-primary-fg-color); 
+  border-radius: 8px; 
+  padding: 1rem 1.25rem; 
+  margin: 1.5rem 0; 
+  background: linear-gradient(135deg, rgba(63,81,181,0.06), rgba(255,64,129,0.06));
+}
+.ai-prompts-block h3 { 
+  margin-top: 0; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+}
+.ai-prompts-badge { 
+  background: var(--md-primary-fg-color); 
+  color: #fff; 
+  font-size: 0.65rem; 
+  letter-spacing: 0.05em; 
+  padding: 0.25rem 0.4rem; 
+  border-radius: 4px; 
+  text-transform: uppercase; 
+}
+.ai-prompts-block .admonition.quote { 
+  border-left: 4px solid var(--md-primary-fg-color); 
+  background: rgba(255,255,255,0.4);
+}
+.dark .ai-prompts-block { 
+  background: linear-gradient(135deg, rgba(63,81,181,0.25), rgba(255,64,129,0.25));
+}
+.dark .ai-prompts-block .admonition.quote { 
+  background: rgba(0,0,0,0.25);
+}
