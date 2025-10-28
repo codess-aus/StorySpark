@@ -37,7 +37,7 @@ from typing import List
 
 try:
     from azure.ai.inference import ChatCompletionsClient
-    from azure.ai.inference.models import ChatCompletionsOptions, InputMessage
+    from azure.ai.inference.models import ChatRequestMessage
     from azure.core.credentials import AzureKeyCredential
 except ImportError as e:  # pragma: no cover - dependency should exist after pip install
     print("Missing Azure AI packages. Did you install requirements?", file=sys.stderr)
@@ -83,7 +83,7 @@ def build_system_prompt() -> str:
     )
 
 
-def create_messages(existing_snippet: str, count: int) -> List[InputMessage]:
+def create_messages(existing_snippet: str, count: int) -> List[ChatRequestMessage]:
     existing_trimmed = existing_snippet.strip()
     if len(existing_trimmed) > 4000:  # limit token usage
         existing_trimmed = existing_trimmed[-4000:]
@@ -94,23 +94,29 @@ def create_messages(existing_snippet: str, count: int) -> List[InputMessage]:
         "Return JSON only. Here is a sample of previous generated content to avoid duplicates:\n" + existing_trimmed
     )
     return [
-        InputMessage(role="system", content=build_system_prompt()),
-        InputMessage(role="user", content=user_content),
+        ChatRequestMessage(role="system", content=build_system_prompt()),
+        ChatRequestMessage(role="user", content=user_content),
     ]
 
 
-def call_model(endpoint: str, key: str, model: str, messages: List[InputMessage]) -> str:
+def call_model(endpoint: str, key: str, model: str, messages: List[ChatRequestMessage]) -> str:
+    """Invoke the Azure AI Inference chat completion endpoint using beta SDK.
+
+    The beta client exposes a .complete(...) method that accepts messages list and parameters directly.
+    """
     client = ChatCompletionsClient(endpoint=endpoint, credential=AzureKeyCredential(key))
-    options = ChatCompletionsOptions(
-        model=model,
+    response = client.complete(
         messages=messages,
+        model=model,
         temperature=0.9,
         max_tokens=800,
         top_p=0.95,
     )
-    response = client.complete(options)
-    # Concatenate all choice contents (usually one choice)
-    combined = "".join(choice.message.content for choice in response.choices if choice.message and choice.message.content)
+    combined = "".join(
+        choice.message.content
+        for choice in getattr(response, "choices", [])
+        if getattr(choice, "message", None) and getattr(choice.message, "content", None)
+    )
     return combined.strip()
 
 

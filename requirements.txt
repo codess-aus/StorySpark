@@ -1,8 +1,9 @@
 mkdocs>=1.5.3
 mkdocs-material>=9.5.0
 
-# Azure AI Foundry SDK for calling deployed generative models
-azure-ai-inference>=1.0.0,<2.0.0
+# Azure AI Foundry SDK (beta) - pin latest available beta since stable not yet published
+# See: https://pypi.org/project/azure-ai-inference/ (available versions 1.0.0b1..1.0.0b9)
+azure-ai-inference==1.0.0b9
 azure-core>=1.30.0
 
 # Optional: load .env locally for credentials (not required in Actions)
