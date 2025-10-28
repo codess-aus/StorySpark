@@ -37,3 +37,6 @@ wheels/
 # Temporary files
 *.tmp
 *.bak
+
+# Secrets / local environment
+.env

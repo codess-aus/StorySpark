@@ -46,7 +46,6 @@ except Exception:
 
 try:
     from azure.ai.inference import ChatCompletionsClient
-    from azure.ai.inference.models import ChatRequestMessage
     from azure.core.credentials import AzureKeyCredential
 except ImportError as e:  # pragma: no cover - dependency should exist after pip install
     print("Missing Azure AI packages. Did you install requirements?", file=sys.stderr)
@@ -92,7 +91,7 @@ def build_system_prompt() -> str:
     )
 
 
-def create_messages(existing_snippet: str, count: int) -> List[ChatRequestMessage]:
+def create_messages(existing_snippet: str, count: int) -> List[dict]:
     existing_trimmed = existing_snippet.strip()
     if len(existing_trimmed) > 4000:  # limit token usage
         existing_trimmed = existing_trimmed[-4000:]
@@ -102,13 +101,14 @@ def create_messages(existing_snippet: str, count: int) -> List[ChatRequestMessag
         "Focus on memories, turning points, relationships, resilience, identity, gratitude, legacy. "
         "Return JSON only. Here is a sample of previous generated content to avoid duplicates:\n" + existing_trimmed
     )
+    # Using dict form accepted by client.complete() to avoid beta model class signature issues.
     return [
-        ChatRequestMessage(role="system", content=build_system_prompt()),
-        ChatRequestMessage(role="user", content=user_content),
+        {"role": "system", "content": build_system_prompt()},
+        {"role": "user", "content": user_content},
     ]
 
 
-def call_model(endpoint: str, key: str, model: str, messages: List[ChatRequestMessage]) -> str:
+def call_model(endpoint: str, key: str, model: str, messages: List[dict]) -> str:
     """Invoke the Azure AI Inference chat completion endpoint using beta SDK.
 
     The beta client exposes a .complete(...) method that accepts messages list and parameters directly.
@@ -127,6 +127,35 @@ def call_model(endpoint: str, key: str, model: str, messages: List[ChatRequestMe
         if getattr(choice, "message", None) and getattr(choice.message, "content", None)
     )
     return combined.strip()
+
+
+def _validate_and_normalize_endpoint(endpoint: str) -> str:
+    """Validate that the provided endpoint matches Azure AI Foundry inference format.
+
+    Expected patterns include: https://<resource-name>.<region>.inference.azure.com/...
+
+    Reject management endpoints (services.ai.azure.com) and Azure OpenAI endpoints (.openai.azure.com) with guidance.
+    """
+    if not endpoint:
+        raise SystemExit("AZURE_AI_ENDPOINT is empty.")
+    ep = endpoint.strip().rstrip("/")
+    # Management endpoint pattern (project operations, not inference)
+    if "services.ai.azure.com" in ep:
+        raise SystemExit(
+            "Provided endpoint appears to be a MANAGEMENT endpoint (services.ai.azure.com). "
+            "Use the INFERENCE endpoint shown under your deployment's 'View code' in Azure AI Studio (contains 'inference.azure.com')."
+        )
+    # Azure OpenAI endpoint pattern
+    if ".openai.azure.com" in ep:
+        raise SystemExit(
+            "Endpoint is an Azure OpenAI endpoint. This script uses azure-ai-inference for Azure AI Foundry. "
+            "Either supply a Foundry inference endpoint (with 'inference.azure.com') or switch SDK to azure-openai."
+        )
+    if "inference.azure.com" not in ep:
+        raise SystemExit(
+            "Endpoint does not look like an Azure AI Foundry inference endpoint. Expected 'inference.azure.com' in the hostname."
+        )
+    return ep
 
 
 def parse_json_array(raw: str) -> List[GeneratedPrompt]:
@@ -192,6 +221,9 @@ def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool 
         if not all([endpoint, key, model]):
             missing = [name for name, val in [("AZURE_AI_ENDPOINT", endpoint), ("AZURE_AI_KEY", key), ("AZURE_AI_MODEL", model)] if not val]
             raise SystemExit(f"Missing required environment variables: {', '.join(missing)}")
+        endpoint = _validate_and_normalize_endpoint(endpoint)
+        if len(key.strip()) < 32:
+            print("[WARN] API key length seems short; ensure you rotated and copied the full key.", file=sys.stderr)
 
     original_text = load_file(PROMPTS_FILE)
     existing_generated = extract_existing_generated_section(original_text)
