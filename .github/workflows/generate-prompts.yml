@@ -1,0 +1,55 @@
+name: Generate AI Writing Prompts
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-prompts
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_AI_ENDPOINT: ${{ secrets.AZURE_AI_ENDPOINT }}
+      AZURE_AI_KEY: ${{ secrets.AZURE_AI_KEY }}
+      AZURE_AI_MODEL: ${{ secrets.AZURE_AI_MODEL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Generate prompts
+        run: |
+          python scripts/generate_prompts.py --count 7
+
+      - name: Commit changes if prompts updated
+        run: |
+          if git diff --quiet docs/prompts.md; then
+            echo "No changes to prompts.md"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/prompts.md
+            git commit -m "chore: add AI-generated prompts $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Summarize diff
+        if: always()
+        run: |
+          git --no-pager diff --name-status HEAD~1..HEAD || true

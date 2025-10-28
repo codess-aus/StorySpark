@@ -51,3 +51,8 @@ Once you've chosen a prompt and written your response, consider sharing it in ou
 
 !!! info "New Prompts Coming Soon"
     This page will be regularly updated with fresh, AI-generated prompts to keep your storytelling journey vibrant and meaningful.
+
+<!-- AI-GENERATED-PROMPTS:START -->
+<!-- (Generated prompts will be inserted below. Do not remove START/END markers.) -->
+<!-- AI-GENERATED-PROMPTS:END -->
+

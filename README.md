@@ -15,6 +15,74 @@ StorySpark is a website that provides AI-generated prompts for writers to record
 - 🌓 Dark/light mode support
 - 📱 Mobile-friendly interface
 
+## Automated AI Prompt Generation
+
+StorySpark can now automatically generate new writing prompts using an Azure AI Foundry deployed model.
+
+### Setup Azure AI Secrets
+
+Add the following repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
+
+| Secret Name | Description |
+|-------------|-------------|
+| `AZURE_AI_ENDPOINT` | Endpoint of your Azure AI Foundry Inference resource (e.g. `https://my-ai-resource-xyz.inference.azure.com`) |
+| `AZURE_AI_KEY` | API key for the resource |
+| `AZURE_AI_MODEL` | Model or deployment name (e.g. `gpt-4o-mini`, `gpt-4o`, `phi-4`, etc.) |
+
+### Generation Workflow
+
+Scheduled and manual generation is handled by a workflow (`generate-prompts.yml`) that:
+1. Installs dependencies (including `azure-ai-inference`).
+2. Runs `scripts/generate_prompts.py` to request new prompts.
+3. Commits changes to `docs/prompts.md` if any were generated.
+4. The existing deployment workflow then publishes updates to Pages.
+
+Markers in `docs/prompts.md`:
+```html
+<!-- AI-GENERATED-PROMPTS:START -->
+<!-- AI-GENERATED-PROMPTS:END -->
+```
+Generated prompts are inserted between these markers under a dated heading.
+
+### Run Locally
+
+Create a `.env` file (optional) with:
+```bash
+AZURE_AI_ENDPOINT=your-endpoint
+AZURE_AI_KEY=your-key
+AZURE_AI_MODEL=gpt-4o-mini
+```
+Install dependencies and run:
+```bash
+pip install -r requirements.txt
+python scripts/generate_prompts.py --count 5
+```
+Use `--dry-run` to preview without writing.
+
+### Customizing Prompt Style
+
+Adjust the system prompt logic in `scripts/generate_prompts.py` (`build_system_prompt()`) to change tone, focus areas, or formatting. Keep JSON contract intact for reliable parsing.
+
+### Troubleshooting
+
+- Empty output: Ensure model supports chat completions and secrets are correct.
+- JSON parse error: Model may have added commentary—tune system prompt for stricter instructions.
+- Duplicate prompts: Increase context window or include more existing prompts by removing the 4000-char trim.
+- Authentication errors: Regenerate the Azure AI key or verify endpoint URL.
+
+### Security Notes
+
+- Secrets are never committed—only referenced in the workflow environment.
+- Avoid echoing secrets in workflow logs.
+- Restrict repository write access; the generation workflow commits to `main`.
+
+### Extending Further
+
+- Add a PR preview workflow to review generated prompts before merging.
+- Run a link checker (`lychee`/`markdown-link-check`) after generation.
+- Add moderation classification step to filter sensitive content.
+
+
 ## Local Development
 
 ### Prerequisites
