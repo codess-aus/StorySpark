@@ -35,7 +35,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 # Load local environment variables from .env if present (optional convenience)
 try:  # pragma: no cover
@@ -47,9 +47,14 @@ except Exception:
 try:
     from azure.ai.inference import ChatCompletionsClient
     from azure.core.credentials import AzureKeyCredential
-except ImportError as e:  # pragma: no cover - dependency should exist after pip install
-    print("Missing Azure AI packages. Did you install requirements?", file=sys.stderr)
-    raise
+except ImportError:  # pragma: no cover - allow fallback for Azure OpenAI
+    ChatCompletionsClient = None  # type: ignore
+    AzureKeyCredential = None  # type: ignore
+
+try:
+    import requests  # REST fallback for Azure OpenAI
+except ImportError:  # pragma: no cover
+    requests = None  # type: ignore
 
 MARKER_START = "<!-- AI-GENERATED-PROMPTS:START -->"
 MARKER_END = "<!-- AI-GENERATED-PROMPTS:END -->"
@@ -108,18 +113,17 @@ def create_messages(existing_snippet: str, count: int) -> List[dict]:
     ]
 
 
-def call_model(endpoint: str, key: str, model: str, messages: List[dict]) -> str:
-    """Invoke the Azure AI Inference chat completion endpoint using beta SDK.
-
-    The beta client exposes a .complete(...) method that accepts messages list and parameters directly.
-    """
+def call_foundry_model(endpoint: str, key: str, model: str, messages: List[dict]) -> str:
+    """Invoke Azure AI Foundry inference endpoint via SDK."""
+    if ChatCompletionsClient is None or AzureKeyCredential is None:
+        raise SystemExit("azure-ai-inference package missing. Install requirements or switch to Azure OpenAI mode.")
     client = ChatCompletionsClient(endpoint=endpoint, credential=AzureKeyCredential(key))
     response = client.complete(
         messages=messages,
         model=model,
-        temperature=0.9,
-        max_tokens=800,
-        top_p=0.95,
+        temperature=float(os.getenv("STORYSPARK_TEMPERATURE", 0.9)),
+        max_tokens=int(os.getenv("STORYSPARK_MAX_TOKENS", 800)),
+        top_p=float(os.getenv("STORYSPARK_TOP_P", 0.95)),
     )
     combined = "".join(
         choice.message.content
@@ -129,33 +133,39 @@ def call_model(endpoint: str, key: str, model: str, messages: List[dict]) -> str
     return combined.strip()
 
 
-def _validate_and_normalize_endpoint(endpoint: str) -> str:
-    """Validate that the provided endpoint matches Azure AI Foundry inference format.
+def call_openai_model(base_endpoint: str, key: str, deployment: str, messages: List[dict], api_version: str) -> str:
+    """Call Azure OpenAI (Cognitive Services) Chat Completions REST API."""
+    if requests is None:
+        raise SystemExit("'requests' not installed. Add it to requirements.txt.")
+    url = f"{base_endpoint.rstrip('/')}/openai/deployments/{deployment}/chat/completions?api-version={api_version}"
+    payload = {
+        "messages": messages,
+        "temperature": float(os.getenv("STORYSPARK_TEMPERATURE", 0.9)),
+        "top_p": float(os.getenv("STORYSPARK_TOP_P", 0.95)),
+        "max_tokens": int(os.getenv("STORYSPARK_MAX_TOKENS", 800)),
+    }
+    headers = {"Content-Type": "application/json", "api-key": key}
+    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    if resp.status_code != 200:
+        raise SystemExit(f"Azure OpenAI request failed: {resp.status_code} {resp.text[:400]}")
+    data = resp.json()
+    combined = "".join(
+        choice.get("message", {}).get("content", "")
+        for choice in data.get("choices", [])
+        if choice.get("message", {}).get("content")
+    )
+    return combined.strip()
 
-    Expected patterns include: https://<resource-name>.<region>.inference.azure.com/...
 
-    Reject management endpoints (services.ai.azure.com) and Azure OpenAI endpoints (.openai.azure.com) with guidance.
-    """
+def _classify_endpoint(endpoint: str) -> str:
     if not endpoint:
-        raise SystemExit("AZURE_AI_ENDPOINT is empty.")
-    ep = endpoint.strip().rstrip("/")
-    # Management endpoint pattern (project operations, not inference)
-    if "services.ai.azure.com" in ep:
-        raise SystemExit(
-            "Provided endpoint appears to be a MANAGEMENT endpoint (services.ai.azure.com). "
-            "Use the INFERENCE endpoint shown under your deployment's 'View code' in Azure AI Studio (contains 'inference.azure.com')."
-        )
-    # Azure OpenAI endpoint pattern
-    if ".openai.azure.com" in ep:
-        raise SystemExit(
-            "Endpoint is an Azure OpenAI endpoint. This script uses azure-ai-inference for Azure AI Foundry. "
-            "Either supply a Foundry inference endpoint (with 'inference.azure.com') or switch SDK to azure-openai."
-        )
-    if "inference.azure.com" not in ep:
-        raise SystemExit(
-            "Endpoint does not look like an Azure AI Foundry inference endpoint. Expected 'inference.azure.com' in the hostname."
-        )
-    return ep
+        raise SystemExit("Endpoint value empty.")
+    host = endpoint.strip().split("//", 1)[-1].split("/", 1)[0]
+    if "inference.azure.com" in host:
+        return "foundry"
+    if "cognitiveservices.azure.com" in host or host.endswith(".openai.azure.com"):
+        return "openai"
+    raise SystemExit("Unrecognized endpoint host; expected inference.azure.com or cognitiveservices.azure.com.")
 
 
 def parse_json_array(raw: str) -> List[GeneratedPrompt]:
@@ -210,9 +220,11 @@ def _mock_prompts(count: int) -> List[GeneratedPrompt]:
 
 
 def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool = False) -> None:
-    endpoint = os.getenv("AZURE_AI_ENDPOINT")
-    key = os.getenv("AZURE_AI_KEY")
-    model = os.getenv("AZURE_AI_MODEL")
+    # Support either Foundry or Azure OpenAI env variable naming.
+    endpoint = os.getenv("AZURE_AI_ENDPOINT") or os.getenv("AZURE_OPENAI_ENDPOINT")
+    key = os.getenv("AZURE_AI_KEY") or os.getenv("AZURE_OPENAI_KEY")
+    model = os.getenv("AZURE_AI_MODEL") or os.getenv("AZURE_OPENAI_DEPLOYMENT")
+    api_version: Optional[str] = os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
     if mock:
         # Allow mock run even if env vars absent
         if debug:
@@ -221,7 +233,7 @@ def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool 
         if not all([endpoint, key, model]):
             missing = [name for name, val in [("AZURE_AI_ENDPOINT", endpoint), ("AZURE_AI_KEY", key), ("AZURE_AI_MODEL", model)] if not val]
             raise SystemExit(f"Missing required environment variables: {', '.join(missing)}")
-        endpoint = _validate_and_normalize_endpoint(endpoint)
+        mode = _classify_endpoint(endpoint)
         if len(key.strip()) < 32:
             print("[WARN] API key length seems short; ensure you rotated and copied the full key.", file=sys.stderr)
 
@@ -231,7 +243,11 @@ def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool 
         prompts = _mock_prompts(count)
     else:
         messages = create_messages(existing_generated, count)
-        raw_output = call_model(endpoint, key, model, messages)
+        if mode == "foundry":
+            raw_output = call_foundry_model(endpoint.rstrip("/"), key, model, messages)
+        else:
+            base_endpoint = endpoint.split("/openai/")[0].rstrip("/")  # in case full path pasted
+            raw_output = call_openai_model(base_endpoint, key, model, messages, api_version)
         if debug:
             print("[DEBUG] Raw model output:\n" + raw_output)
         try:
