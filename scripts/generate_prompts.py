@@ -36,6 +36,7 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import List, Optional
+import socket
 
 # Load local environment variables from .env if present (optional convenience)
 try:  # pragma: no cover
@@ -219,14 +220,31 @@ def _mock_prompts(count: int) -> List[GeneratedPrompt]:
     return out
 
 
+def _write_metadata(mode: str, count: int, model: str, endpoint: Optional[str]) -> None:
+    host = "" if not endpoint else endpoint.strip().split("//", 1)[-1].split("/", 1)[0]
+    meta = {
+        "timestamp": dt.datetime.utcnow().isoformat() + "Z",
+        "mode": mode,
+        "count": count,
+        "model": model,
+        "endpoint_host": host,
+        "runner_host": socket.gethostname(),
+    }
+    try:
+        with open("prompt_generation_meta.json", "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+    except Exception as e:
+        print(f"[WARN] Failed to write metadata file: {e}", file=sys.stderr)
+
+
 def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool = False) -> None:
-    # Support either Foundry or Azure OpenAI env variable naming.
     endpoint = os.getenv("AZURE_AI_ENDPOINT") or os.getenv("AZURE_OPENAI_ENDPOINT")
     key = os.getenv("AZURE_AI_KEY") or os.getenv("AZURE_OPENAI_KEY")
-    model = os.getenv("AZURE_AI_MODEL") or os.getenv("AZURE_OPENAI_DEPLOYMENT")
+    model = os.getenv("AZURE_AI_MODEL") or os.getenv("AZURE_OPENAI_DEPLOYMENT") or "UNSPECIFIED"
     api_version: Optional[str] = os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
+
     if mock:
-        # Allow mock run even if env vars absent
+        mode = "mock"
         if debug:
             print("[DEBUG] Running in --mock mode; no Azure call will be made.")
     else:
@@ -234,11 +252,13 @@ def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool 
             missing = [name for name, val in [("AZURE_AI_ENDPOINT", endpoint), ("AZURE_AI_KEY", key), ("AZURE_AI_MODEL", model)] if not val]
             raise SystemExit(f"Missing required environment variables: {', '.join(missing)}")
         mode = _classify_endpoint(endpoint)
+        print(f"[MODE] Detected endpoint type: {mode}")
         if len(key.strip()) < 32:
             print("[WARN] API key length seems short; ensure you rotated and copied the full key.", file=sys.stderr)
 
     original_text = load_file(PROMPTS_FILE)
     existing_generated = extract_existing_generated_section(original_text)
+
     if mock:
         prompts = _mock_prompts(count)
     else:
@@ -246,7 +266,7 @@ def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool 
         if mode == "foundry":
             raw_output = call_foundry_model(endpoint.rstrip("/"), key, model, messages)
         else:
-            base_endpoint = endpoint.split("/openai/")[0].rstrip("/")  # in case full path pasted
+            base_endpoint = endpoint.split("/openai/")[0].rstrip("/")
             raw_output = call_openai_model(base_endpoint, key, model, messages, api_version)
         if debug:
             print("[DEBUG] Raw model output:\n" + raw_output)
@@ -257,9 +277,12 @@ def generate(count: int, dry_run: bool = False, debug: bool = False, mock: bool 
             raise SystemExit(1)
 
     if not prompts:
+        _write_metadata(mode, 0, model, endpoint)
         raise SystemExit("No prompts parsed from model output.")
 
     new_md = "".join(p.to_markdown() for p in prompts)
+    _write_metadata(mode, len(prompts), model, endpoint)
+    print(f"[SUMMARY] Mode={mode} PromptsParsed={len(prompts)} Model={model}")
 
     if dry_run:
         print("--- DRY RUN: Generated Prompts Markdown ---")

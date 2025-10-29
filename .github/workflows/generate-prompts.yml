@@ -37,6 +37,15 @@ jobs:
         run: |
           python scripts/generate_prompts.py --count 7
 
+      - name: Show generation metadata
+        run: |
+          if [ -f prompt_generation_meta.json ]; then
+            echo '--- Prompt Generation Metadata ---'
+            cat prompt_generation_meta.json
+          else
+            echo 'No metadata file found.'
+          fi
+
       - name: Commit changes if prompts updated
         run: |
           if git diff --quiet docs/prompts.md; then
