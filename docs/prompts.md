@@ -53,21 +53,29 @@ Once you've chosen a prompt and written your response, consider sharing it in ou
     This page will be regularly updated with fresh, AI-generated prompts to keep your storytelling journey vibrant and meaningful.
 
 <!-- AI-GENERATED-PROMPTS:START -->
-<div class="ai-prompts-block" markdown="1">
-### AI Generated Prompts - Seed
-<span class="ai-prompts-badge">AI</span> These initial prompts are seeded; future runs will append dated sets.
 
-!!! quote "A Quiet Turning Point"
-    Recall a seemingly small moment that later proved pivotal. What shifted afterward?
-!!! quote "An Object You Still Keep"
-    Describe an old object you've kept. Why does it matter and what memory does it hold?
-!!! quote "Gratitude in Difficulty"
-    Write about a time gratitude appeared during a challenging period. What revealed it?
-!!! quote "A Voice That Guided You"
-    Think of someone whose words shaped a choice you made. What did they say?
-!!! quote "Hidden Joy"
-    Describe a joy you didn't expect to find in an ordinary routine. Why did it stand out?
+### AI Generated Prompts - 2025-11-03
 
-</div>
+!!! quote "Defining Moments"
+    Identify a moment in your life that defined who you are today. How did it influence your values and choices?
+
+!!! quote "Unlikely Connections"
+    Recall a relationship that surprised you with its depth or impact. What made it significant in your life?
+
+!!! quote "Resilience Through Change"
+    Reflect on a time when you had to adapt to unexpected change. What strengths did you discover within yourself?
+
+!!! quote "Cultural Roots"
+    Explore a tradition or practice from your background that has shaped your identity. How does it resonate with you today?
+
+!!! quote "Lessons from Loss"
+    Think about a loss you've experienced and what it taught you about yourself or life. How has it shaped your outlook?
+
+!!! quote "Acts of Kindness"
+    Describe a moment when someone’s kindness made a lasting impression on you. How did it affect your perspective?
+
+!!! quote "Legacy You Wish to Leave"
+    Consider what legacy you hope to leave behind. What values or messages do you want others to remember you by?
+
 <!-- AI-GENERATED-PROMPTS:END -->
 
