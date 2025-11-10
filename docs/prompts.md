@@ -54,28 +54,28 @@ Once you've chosen a prompt and written your response, consider sharing it in ou
 
 <!-- AI-GENERATED-PROMPTS:START -->
 
-### AI Generated Prompts - 2025-11-03
+### AI Generated Prompts - 2025-11-10
 
-!!! quote "Defining Moments"
-    Identify a moment in your life that defined who you are today. How did it influence your values and choices?
+!!! quote "Moments of Gratitude"
+    Recall a specific moment when you felt an overwhelming sense of gratitude. Who or what were you grateful for, and how did that experience impact your life?
 
-!!! quote "Unlikely Connections"
-    Recall a relationship that surprised you with its depth or impact. What made it significant in your life?
+!!! quote "Turning Points"
+    Identify a turning point in your life that altered your direction. What were the circumstances surrounding this change, and how did it influence your future choices?
 
-!!! quote "Resilience Through Change"
-    Reflect on a time when you had to adapt to unexpected change. What strengths did you discover within yourself?
+!!! quote "Finding Strength"
+    Reflect on a challenging time when you discovered an inner strength you didn't know you had. What was the situation, and how did it transform your perception of yourself?
 
-!!! quote "Cultural Roots"
-    Explore a tradition or practice from your background that has shaped your identity. How does it resonate with you today?
+!!! quote "Influential Figures"
+    Think about someone who has significantly influenced your life. What lessons did they teach you, and how do they continue to shape your identity today?
 
-!!! quote "Lessons from Loss"
-    Think about a loss you've experienced and what it taught you about yourself or life. How has it shaped your outlook?
+!!! quote "Moments of Connection"
+    Describe a moment when you felt deeply connected to someone else. What sparked that connection, and how did it change your relationship?
 
-!!! quote "Acts of Kindness"
-    Describe a moment when someone’s kindness made a lasting impression on you. How did it affect your perspective?
+!!! quote "Reflections on Identity"
+    Explore a time when you questioned your identity. What prompted this introspection, and what conclusions did you come to about who you are?
 
-!!! quote "Legacy You Wish to Leave"
-    Consider what legacy you hope to leave behind. What values or messages do you want others to remember you by?
+!!! quote "Grateful for the Journey"
+    Consider a challenging experience that, in hindsight, you are thankful for. What did it teach you about resilience and the journey of life?
 
 <!-- AI-GENERATED-PROMPTS:END -->
 
