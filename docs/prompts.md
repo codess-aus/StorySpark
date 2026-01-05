@@ -54,28 +54,28 @@ Once you've chosen a prompt and written your response, consider sharing it in ou
 
 <!-- AI-GENERATED-PROMPTS:START -->
 
-### AI Generated Prompts - 2025-12-29
+### AI Generated Prompts - 2026-01-05
 
-!!! quote "Pivotal Relationships"
-    Identify a person who played a crucial role during a formative period in your life. How did this relationship shape your beliefs and future choices?
+!!! quote "Finding Resilience"
+    Recall a challenging period in your life when you discovered your inner strength. What specific actions or mindsets helped you navigate through that time?
 
-!!! quote "Moments of Vulnerability"
-    Think of a time when you allowed yourself to be truly vulnerable. What impact did this openness have on your relationships and self-acceptance?
+!!! quote "The Role of Gratitude"
+    Think of a moment when you felt a profound sense of gratitude for someone in your life. How did this feeling affect your relationship with them and your outlook on life?
 
-!!! quote "Celebrating Small Victories"
-    Reflect on a small achievement that brought you immense joy. How did this moment contribute to your sense of identity and self-worth?
+!!! quote "Legacy of Values"
+    Consider the values you inherited from your family. Which of these do you strive to uphold in your own life, and how do they shape your identity?
 
-!!! quote "Lessons from Failure"
-    Recall an experience where you faced failure. What insights did you gain from this setback, and how did it help you redefine your path?
+!!! quote "Defining Moments"
+    Reflect on a defining moment that significantly changed your perspective on life. What led to this moment, and how has it influenced your actions since?
 
-!!! quote "Acts of Courage"
-    Describe a moment when you had to summon courage to stand up for yourself or someone else. How did this act influence your sense of empowerment?
+!!! quote "Connections Across Time"
+    Think about a friendship that has endured over the years. What experiences have solidified this bond, and how has it evolved through different stages of your life?
 
-!!! quote "Cherished Traditions"
-    Think about a family tradition that holds special meaning to you. How does this practice connect you to your roots and influence your values today?
+!!! quote "Identity Evolution"
+    Explore a time when you felt a shift in your identity. What triggered this change, and how did it impact your sense of self?
 
-!!! quote "Unexpected Gifts"
-    Reflect on a time when an unexpected opportunity came your way. How did this experience alter your perspective on possibilities and your future?
+!!! quote "Moments of Reflection"
+    Recall a quiet moment where you found clarity about your life's direction. What were you reflecting on, and how did it guide your subsequent choices?
 
 <!-- AI-GENERATED-PROMPTS:END -->
 
